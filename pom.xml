@@ -13,8 +13,8 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>enkan-component-dynamodb</name>
-    <url>http://github.com/enkan/enkan-component-dynamodb</url>
+    <name>enkan-component-ldaptive</name>
+    <url>http://github.com/enkan/enkan-component-ldaptive</url>
 
     <properties>
         <ldaptive.version>1.2.3</ldaptive.version>
