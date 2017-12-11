@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 public class InMemoryDirectoryServiceFactory implements DirectoryServiceFactory {
     private static Logger LOG = LoggerFactory.getLogger(InMemoryDirectoryServiceFactory.class);
@@ -66,7 +67,8 @@ public class InMemoryDirectoryServiceFactory implements DirectoryServiceFactory 
      * {@inheritDoc}
      */
     public void init(String name) throws Exception {
-        if ((directoryService != null) && directoryService.isStarted()) {
+        Objects.requireNonNull(directoryService, "directoryService is null");
+        if (directoryService.isStarted()) {
             return;
         }
 
@@ -85,8 +87,11 @@ public class InMemoryDirectoryServiceFactory implements DirectoryServiceFactory 
 
         // EhCache in disabled-like-mode
         Configuration ehCacheConfig = new Configuration();
-        CacheConfiguration defaultCache = new CacheConfiguration("default", 1).eternal(false).timeToIdleSeconds(30)
-                .timeToLiveSeconds(30).overflowToDisk(false);
+        CacheConfiguration defaultCache = new CacheConfiguration("default", 1)
+                .eternal(false)
+                .timeToIdleSeconds(30)
+                .timeToLiveSeconds(30)
+                .overflowToDisk(false);
         ehCacheConfig.addDefaultCache(defaultCache);
         CacheService cacheService = new CacheService(new CacheManager(ehCacheConfig));
         directoryService.setCacheService(cacheService);

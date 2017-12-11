@@ -7,8 +7,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.ldaptive.LdapException;
+import org.ldaptive.ssl.KeyStoreCredentialConfig;
+import org.ldaptive.ssl.SslConfig;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import static enkan.util.BeanBuilder.builder;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,14 +51,17 @@ public class ApacheDSTest {
 
     @Test
     public void ssl() throws LdapException {
+        KeyStoreCredentialConfig credConfig = new KeyStoreCredentialConfig();
+        credConfig.setTrustStore("file:./src/test/resources/clienttrust.jks");
+        credConfig.setTrustStorePassword("password");
+
         EnkanSystem system = EnkanSystem.of(
                 "ldap", builder(new LdapClient())
                         .set(LdapClient::setScheme, "ldaps")
                         .set(LdapClient::setHost, "localhost")
                         .set(LdapClient::setPort, 10636)
                         .set(LdapClient::setSearchBase, "ou=users,dc=example,dc=com")
-                        .set(LdapClient::setTruststorePath, "src/test/resources/clienttrust.jks")
-                        .set(LdapClient::setTruststorePassword, "password")
+                        .set(LdapClient::setSslConfig, new SslConfig(credConfig))
                         .build()
         );
         try {

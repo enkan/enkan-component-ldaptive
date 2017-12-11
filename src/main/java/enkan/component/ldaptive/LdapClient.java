@@ -2,21 +2,10 @@ package enkan.component.ldaptive;
 
 import enkan.component.ComponentLifecycle;
 import enkan.component.SystemComponent;
-import enkan.exception.UnreachableException;
 import org.ldaptive.*;
 import org.ldaptive.auth.*;
-import org.ldaptive.ssl.KeyStoreCredentialConfig;
 import org.ldaptive.ssl.SslConfig;
 
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.Objects;
 
 public class LdapClient extends SystemComponent {
@@ -27,24 +16,11 @@ public class LdapClient extends SystemComponent {
     private String password;
     private String searchBase = "";
     private String accountAttribute = "sAMAccountName";
-    private String truststorePath;
-    private String truststorePassword;
     private AuthMethod authMethod = AuthMethod.NONE;
+    private SslConfig sslConfig;
 
     private Authenticator authenticator;
 
-    private TrustManager[] createTrustManagers(String path, String password) throws IOException, KeyStoreException, CertificateException {
-        try (InputStream is = new FileInputStream(path)) {
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(is, password.toCharArray());
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmf.init(keyStore);
-
-            return tmf.getTrustManagers();
-        } catch (NoSuchAlgorithmException e) {
-            throw new UnreachableException(e);
-        }
-    }
     @Override
     protected ComponentLifecycle lifecycle() {
         return new ComponentLifecycle<LdapClient>() {
@@ -55,13 +31,8 @@ public class LdapClient extends SystemComponent {
                     connConfig.setConnectionInitializer(new BindConnectionInitializer(component.user, new Credential(component.password)));
                 }
                 connConfig.setUseSSL(Objects.equals(component.scheme, "ldaps"));
-                if (Objects.equals(component.scheme, "ldaps")) {
-                    if (truststorePath != null) {
-                        KeyStoreCredentialConfig credConfig = new KeyStoreCredentialConfig();
-                        credConfig.setTrustStore("file:" + truststorePath);
-                        credConfig.setTrustStorePassword(truststorePassword);
-                        connConfig.setSslConfig(new SslConfig(credConfig));
-                    }
+                if (sslConfig != null) {
+                    connConfig.setSslConfig(sslConfig);
                 }
                 ConnectionFactory connectionFactory = new DefaultConnectionFactory(connConfig);
                 SearchDnResolver dnResolver = new SearchDnResolver(connectionFactory);
@@ -121,6 +92,10 @@ public class LdapClient extends SystemComponent {
         this.accountAttribute = accountAttribute;
     }
 
+    public void setSslConfig(SslConfig sslConfig) {
+        this.sslConfig = sslConfig;
+    }
+
     public enum AuthMethod {
         NONE("none"),
         SIMPLE("simple");
@@ -133,13 +108,5 @@ public class LdapClient extends SystemComponent {
         public String getValue() {
             return value;
         }
-    }
-
-    public void setTruststorePath(String truststorePath) {
-        this.truststorePath = truststorePath;
-    }
-
-    public void setTruststorePassword(String truststorePassword) {
-        this.truststorePassword = truststorePassword;
     }
 }
