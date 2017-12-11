@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>enkan-component-ldaptive</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
 
     <name>enkan-component-ldaptive</name>
